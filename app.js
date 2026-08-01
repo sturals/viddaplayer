@@ -120,6 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
         startApiPolling();
         checkUrlParam();
         
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
         // Initial focus on URL Input
         setFocus(elements.urlInput);
     }
