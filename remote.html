@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIDAA TV Player — Пульт</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .status.ready {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status.sending {
+            background: rgba(234, 179, 8, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .status.sent {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .select-input, .url-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .url-input {
+            min-height: 100px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            resize: vertical;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .select-input:focus, .url-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        .url-input::placeholder {
+            color: #475569;
+        }
+
+        .btn-send {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-send:active {
+            transform: scale(0.97);
+        }
+
+        .btn-send.success {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+        }
+
+        .history-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .history-section h3 {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .history-item {
+            padding: 12px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-family: monospace;
+            color: #94a3b8;
+            word-break: break-all;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .history-item:active {
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="header">
+            <h1>📺 VIDAA TV Player — Пульт</h1>
+            <p>Вставьте любую длинную ссылку на видео и отправьте её на ТВ</p>
+        </div>
+
+        <div id="status" class="status ready">
+            <span id="status-text">🟢 Готов к отправке на ТВ</span>
+        </div>
+
+        <div class="input-group" id="tv-select-group">
+            <label for="tv-select">Целевой телевизор:</label>
+            <select id="tv-select" class="select-input">
+                <option value="default">Загрузка списка ТВ...</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="url">Ссылка на видео (.m3u8, .mp4, .webm)</label>
+            <textarea id="url" class="url-input" placeholder="Вставьте ссылку https://..." rows="3"></textarea>
+        </div>
+
+        <button id="btn-send" class="btn-send">
+            <span>📡</span>
+            <span id="btn-text">Отправить на ТВ</span>
+        </button>
+
+        <div id="history-section" class="history-section" style="display: none;">
+            <h3>История отправленных ссылок:</h3>
+            <div id="history-list"></div>
+        </div>
+
+        <div class="footer">
+            Ссылка передаётся моментально через локальный сервер
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const urlTvParam = params.get('tv');
+
+        const statusEl = document.getElementById('status');
+        const statusText = document.getElementById('status-text');
+        const urlInput = document.getElementById('url');
+        const btnSend = document.getElementById('btn-send');
+        const btnTextEl = document.getElementById('btn-text');
+        const historySection = document.getElementById('history-section');
+        const historyList = document.getElementById('history-list');
+        const tvSelectGroup = document.getElementById('tv-select-group');
+        const tvSelect = document.getElementById('tv-select');
+
+        let sentHistory = JSON.parse(localStorage.getItem('remote_history') || '[]');
+        renderHistory();
+
+        // Load active TVs list
+        loadActiveTvs();
+
+        btnSend.addEventListener('click', sendUrlToTV);
+
+        async function loadActiveTvs() {
+            try {
+                const res = await fetch('/api/tvs');
+                const data = await res.json();
+
+                tvSelect.innerHTML = '';
+
+                if (urlTvParam) {
+                    const option = document.createElement('option');
+                    option.value = urlTvParam;
+                    option.textContent = `📺 Выбранный ТВ (${urlTvParam.replace('tv_', '')})`;
+                    option.selected = true;
+                    tvSelect.appendChild(option);
+                }
+
+                if (data.tvs && data.tvs.length > 0) {
+                    data.tvs.forEach(tv => {
+                        if (tv.id !== urlTvParam) {
+                            const opt = document.createElement('option');
+                            opt.value = tv.id;
+                            opt.textContent = `📺 ${tv.name}`;
+                            tvSelect.appendChild(opt);
+                        }
+                    });
+                } else if (!urlTvParam) {
+                    const opt = document.createElement('option');
+                    opt.value = 'default';
+                    opt.textContent = '📺 Все подключенные ТВ (по умолчанию)';
+                    tvSelect.appendChild(opt);
+                }
+            } catch (e) {
+                console.warn('Could not load TVs list', e);
+            }
+        }
+
+        async function sendUrlToTV() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                setStatus('error', '⚠️ Введите или вставьте ссылку на видео!');
+                return;
+            }
+
+            const targetTv = tvSelect.value || urlTvParam || 'default';
+
+            setStatus('sending', '⏳ Отправка на ТВ...');
+
+            try {
+                const response = await fetch('/api/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, tv: targetTv })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    setStatus('sent', '🚀 Видео запущено на ТВ!');
+                    btnTextEl.textContent = '✅ Отправлено!';
+                    btnSend.classList.add('success');
+
+                    // Save history
+                    sentHistory = sentHistory.filter(h => h !== url);
+                    sentHistory.unshift(url);
+                    if (sentHistory.length > 5) sentHistory.pop();
+                    localStorage.setItem('remote_history', JSON.stringify(sentHistory));
+                    renderHistory();
+
+                    setTimeout(() => {
+                        btnTextEl.textContent = 'Отправить на ТВ';
+                        btnSend.classList.remove('success');
+                        setStatus('ready', '🟢 Готов к отправке на ТВ');
+                    }, 3000);
+                } else {
+                    setStatus('error', '❌ Ошибка сервера: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (err) {
+                console.error('Send error:', err);
+                setStatus('error', '❌ Ошибка сети. Убедитесь, что ТВ включён и сервер запущен.');
+            }
+        }
+
+        function setStatus(type, text) {
+            statusEl.className = 'status ' + type;
+            statusText.textContent = text;
+        }
+
+        function renderHistory() {
+            if (sentHistory.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+            historySection.style.display = 'flex';
+            historyList.innerHTML = '';
+            sentHistory.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.textContent = url;
+                div.addEventListener('click', () => {
+                    urlInput.value = url;
+                    sendUrlToTV();
+                });
+                historyList.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>

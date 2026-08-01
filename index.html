@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIDAA TV Player</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- HLS.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+    
+    <!-- PeerJS CDN (WebRTC P2P for phone remote) -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- QRCode JS CDN (Client-side QR generation) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+
+        <!-- ==================== HOME / START SCREEN ==================== -->
+        <section id="start-screen" class="screen active">
+            <header class="header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"></polygon>
+                    </svg>
+                    <span>VIDAA TV Player</span>
+                </div>
+                <div class="clock" id="live-clock">00:00</div>
+            </header>
+
+            <main class="start-main">
+                <div class="input-card glass-panel">
+                    <h2>Воспроизведение по ссылке</h2>
+                    <p class="subtitle">Введите ссылку на видео (.m3u8, .mp4, .webm) с помощью пульта</p>
+                    
+                    <div class="url-input-wrapper">
+                        <textarea id="url-input" class="focusable" placeholder="https://example.com/video.mp4" autocomplete="off" spellcheck="false" rows="2"></textarea>
+                        <button id="btn-play-url" class="btn btn-primary focusable">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span>Смотреть</span>
+                        </button>
+                    </div>
+
+                    <!-- Virtual Keyboard & QR Bar -->
+                    <div class="keyboard-toggle-bar">
+                        <button id="btn-toggle-keyboard" class="btn btn-secondary focusable">
+                            ⌨️ Экранная клавиатура
+                        </button>
+                        <button id="btn-qr-sync" class="btn btn-secondary focusable">
+                            📱 Ссылка с телефона (QR)
+                        </button>
+                        <button id="btn-paste-demo" class="btn btn-secondary focusable" title="Тестовое видео HLS">
+                            🎬 Демо HLS
+                        </button>
+                    </div>
+
+                    <div id="virtual-keyboard" class="virtual-keyboard hidden glass-panel">
+                        <div class="kb-row">
+                            <button class="kb-key focusable" data-key="1">1</button>
+                            <button class="kb-key focusable" data-key="2">2</button>
+                            <button class="kb-key focusable" data-key="3">3</button>
+                            <button class="kb-key focusable" data-key="4">4</button>
+                            <button class="kb-key focusable" data-key="5">5</button>
+                            <button class="kb-key focusable" data-key="6">6</button>
+                            <button class="kb-key focusable" data-key="7">7</button>
+                            <button class="kb-key focusable" data-key="8">8</button>
+                            <button class="kb-key focusable" data-key="9">9</button>
+                            <button class="kb-key focusable" data-key="0">0</button>
+                            <button class="kb-key kb-action focusable" data-action="backspace">⌫ Стереть</button>
+                        </div>
+                        <div class="kb-row">
+                            <button class="kb-key focusable" data-key="q">q</button>
+                            <button class="kb-key focusable" data-key="w">w</button>
+                            <button class="kb-key focusable" data-key="e">e</button>
+                            <button class="kb-key focusable" data-key="r">r</button>
+                            <button class="kb-key focusable" data-key="t">t</button>
+                            <button class="kb-key focusable" data-key="y">y</button>
+                            <button class="kb-key focusable" data-key="u">u</button>
+                            <button class="kb-key focusable" data-key="i">i</button>
+                            <button class="kb-key focusable" data-key="o">o</button>
+                            <button class="kb-key focusable" data-key="p">p</button>
+                            <button class="kb-key focusable" data-key="/">/</button>
+                        </div>
+                        <div class="kb-row">
+                            <button class="kb-key focusable" data-key="a">a</button>
+                            <button class="kb-key focusable" data-key="s">s</button>
+                            <button class="kb-key focusable" data-key="d">d</button>
+                            <button class="kb-key focusable" data-key="f">f</button>
+                            <button class="kb-key focusable" data-key="g">g</button>
+                            <button class="kb-key focusable" data-key="h">h</button>
+                            <button class="kb-key focusable" data-key="j">j</button>
+                            <button class="kb-key focusable" data-key="k">k</button>
+                            <button class="kb-key focusable" data-key="l">l</button>
+                            <button class="kb-key focusable" data-key=":">:</button>
+                            <button class="kb-key focusable" data-key=".">.</button>
+                        </div>
+                        <div class="kb-row">
+                            <button class="kb-key focusable" data-key="z">z</button>
+                            <button class="kb-key focusable" data-key="x">x</button>
+                            <button class="kb-key focusable" data-key="c">c</button>
+                            <button class="kb-key focusable" data-key="v">v</button>
+                            <button class="kb-key focusable" data-key="b">b</button>
+                            <button class="kb-key focusable" data-key="n">n</button>
+                            <button class="kb-key focusable" data-key="m">m</button>
+                            <button class="kb-key focusable" data-key="-">-</button>
+                            <button class="kb-key focusable" data-key="_">_</button>
+                            <button class="kb-key focusable" data-key="?">?</button>
+                            <button class="kb-key focusable" data-key="=">=</button>
+                        </div>
+                        <div class="kb-row shortcuts-row">
+                            <button class="kb-key kb-preset focusable" data-preset="https://">https://</button>
+                            <button class="kb-key kb-preset focusable" data-preset="http://">http://</button>
+                            <button class="kb-key kb-preset focusable" data-preset=".m3u8">.m3u8</button>
+                            <button class="kb-key kb-preset focusable" data-preset=".mp4">.mp4</button>
+                            <button class="kb-key kb-action focusable" data-action="clear">Очистить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Link History Section -->
+                <div class="history-section glass-panel">
+                    <div class="history-header">
+                        <h3>История и сохраненные</h3>
+                        <button id="btn-clear-history" class="btn btn-text focusable">Очистить историю</button>
+                    </div>
+                    <div id="history-list" class="history-list">
+                        <!-- History items generated dynamically -->
+                        <div class="empty-history">История пуста. Введенные вами ссылки будут сохраняться здесь.</div>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <!-- ==================== PLAYER SCREEN ==================== -->
+        <section id="player-screen" class="screen">
+            <div class="video-container">
+                <video id="video-player" crossorigin="anonymous" playsinline></video>
+                
+                <!-- Toast Notification for Speed & Messages -->
+                <div id="toast" class="toast hidden"></div>
+
+                <!-- Loading Spinner -->
+                <div id="player-loader" class="player-loader hidden">
+                    <div class="spinner"></div>
+                    <p id="loader-text">Загрузка видео...</p>
+                </div>
+
+                <!-- Error Overlay -->
+                <div id="player-error" class="player-error hidden glass-panel">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <h3 id="error-title">Ошибка воспроизведения</h3>
+                    <p id="error-message">Не удалось загрузить поток. Проверьте ссылку или настройки CORS.</p>
+                    <button id="btn-error-back" class="btn btn-primary focusable">Вернуться назад</button>
+                </div>
+
+                <!-- On-Screen Display (OSD) Overlay -->
+                <div id="osd-overlay" class="osd-overlay">
+                    <!-- Top Bar -->
+                    <div class="osd-top-bar">
+                        <button id="btn-osd-back" class="btn btn-icon focusable" title="Назад (Esc)">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <div class="osd-title" id="osd-video-title">Название видео</div>
+                        <div class="osd-clock" id="osd-live-clock">00:00</div>
+                    </div>
+
+                    <!-- Bottom Bar -->
+                    <div class="osd-bottom-bar glass-panel">
+                        <!-- Progress Bar & Time -->
+                        <div class="progress-container">
+                            <span class="time-display" id="time-current">00:00</span>
+                            <div class="progress-bar-wrapper focusable" id="progress-wrapper" tabindex="0">
+                                <div class="progress-bar-bg">
+                                    <div class="progress-buffered" id="progress-buffered"></div>
+                                    <div class="progress-played" id="progress-played"></div>
+                                    <div class="progress-scrubber" id="progress-scrubber"></div>
+                                </div>
+                            </div>
+                            <span class="time-display" id="time-duration">00:00</span>
+                        </div>
+
+                        <!-- Controls Buttons Row -->
+                        <div class="controls-row">
+                            <div class="controls-left">
+                                <button id="btn-rewind" class="btn btn-icon focusable" title="Назад -10 сек (←)">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
+                                    </svg>
+                                </button>
+                                <button id="btn-play-pause" class="btn btn-icon btn-play focusable" title="Воспроизведение/Пауза (Enter)">
+                                    <svg id="icon-play" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    <svg id="icon-pause" class="hidden" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                        <rect x="6" y="4" width="4" height="16"></rect>
+                                        <rect x="14" y="4" width="4" height="16"></rect>
+                                    </svg>
+                                </button>
+                                <button id="btn-forward" class="btn btn-icon focusable" title="Вперед +10 сек (→)">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="controls-right">
+                                <!-- Speed selector -->
+                                <button id="btn-speed" class="btn btn-control focusable">
+                                    <span id="speed-label">1.0x</span>
+                                </button>
+
+                                <!-- Audio tracks selector -->
+                                <button id="btn-audio" class="btn btn-control focusable" title="Аудиодорожки">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                    </svg>
+                                    <span id="audio-label">Аудио</span>
+                                </button>
+
+                                <!-- Subtitles selector -->
+                                <button id="btn-subtitles" class="btn btn-control focusable" title="Субтитры">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="5" width="18" height="14" rx="2" ry="2"/>
+                                        <line x1="7" y1="15" x2="11" y2="15"/>
+                                        <line x1="13" y1="15" x2="17" y2="15"/>
+                                        <line x1="7" y1="11" x2="17" y2="11"/>
+                                    </svg>
+                                    <span id="sub-label">Субтитры</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-menus (Popup overlays) -->
+                <!-- Speed Menu -->
+                <div id="speed-menu" class="popup-menu hidden glass-panel">
+                    <h4>Скорость воспроизведения</h4>
+                    <div class="menu-options" id="speed-options">
+                        <button class="menu-item focusable" data-speed="0.5">0.5x</button>
+                        <button class="menu-item focusable active" data-speed="1.0">1.0x (Обычная)</button>
+                        <button class="menu-item focusable" data-speed="1.25">1.25x</button>
+                        <button class="menu-item focusable" data-speed="1.5">1.5x</button>
+                        <button class="menu-item focusable" data-speed="1.75">1.75x</button>
+                        <button class="menu-item focusable" data-speed="2.0">2.0x</button>
+                        <button class="menu-item focusable" data-speed="2.5">2.5x</button>
+                    </div>
+                </div>
+
+                <!-- Audio Track Menu -->
+                <div id="audio-menu" class="popup-menu hidden glass-panel">
+                    <h4>Аудиодорожка</h4>
+                    <div class="menu-options" id="audio-options">
+                        <div class="menu-item">Загрузка дорожек...</div>
+                    </div>
+                </div>
+
+                <!-- Subtitle Track Menu -->
+                <div id="subtitle-menu" class="popup-menu hidden glass-panel">
+                    <h4>Субтитры</h4>
+                    <div class="menu-options" id="subtitle-options">
+                        <div class="menu-item">Загрузка субтитров...</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- QR Sync Modal (Global Overlay) -->
+    <div id="qr-modal" class="hidden qr-modal-overlay">
+        <div class="qr-modal glass-panel">
+            <h4>📱 Ссылка с телефона</h4>
+            <p class="qr-desc">Отсканируйте QR-код камерой телефона.<br>На телефоне откроется пультик — вставьте любую ссылку и она сразу заиграет на ТВ.</p>
+            <div class="qr-code-box" id="qr-code-box"></div>
+            <a id="qr-url-link" class="qr-url-text focusable" href="#" target="_blank" rel="noopener">http://...</a>
+            <button id="btn-close-qr" class="btn btn-primary focusable">Закрыть</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

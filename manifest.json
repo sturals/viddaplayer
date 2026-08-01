@@ -1,0 +1,17 @@
+{
+  "name": "VIDAA TV Player",
+  "short_name": "TV Player",
+  "description": "Smart TV Web Video Player with speed control, audio tracks and D-Pad navigation for VIDAA OS",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0a0c10",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
