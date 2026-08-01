@@ -56,6 +56,41 @@
             line-height: 1.5;
         }
 
+        .btn-install {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45);
+        }
+
+        .btn-install:hover, .btn-install:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+            outline: 3px solid #60a5fa;
+        }
+
+        .status-box {
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: center;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
         .methods-grid {
             display: flex;
             flex-direction: column;
@@ -104,7 +139,7 @@
             text-decoration: none;
             padding: 16px;
             border-radius: 14px;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
             font-size: 1.1rem;
             font-weight: 600;
@@ -113,7 +148,7 @@
 
         .btn-open-app:hover, .btn-open-app:focus {
             outline: 3px solid #60a5fa;
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
         }
     </style>
 </head>
@@ -122,24 +157,23 @@
     <div class="card">
         <div class="header">
             <h1>📺 Быстрый запуск на VIDAA TV</h1>
-            <p>На операционной системе VIDAA OS (Hisense / Toshiba) есть 2 удобных способа запуска плеера без постоянного ввода адреса:</p>
+            <p>Нажмите синюю кнопку ниже для прямой установки ярлыка на ваш телевизор Toshiba / Hisense</p>
+        </div>
+
+        <button id="btn-install-pwa" class="btn-install">
+            <span>📲</span>
+            <span>Добавить иконку на рабочий стол ТВ</span>
+        </button>
+
+        <div id="status" class="status-box">
+            Нажмите кнопку выше для установки ярлыка на ТВ
         </div>
 
         <div class="methods-grid">
             <div class="method-card">
-                <h3><span>🚀</span> Способ 1: Запуск в 1 клик через Media Station X (Рекомендуется)</h3>
-                <p>1. Откройте встроенный магазин приложений на ТВ и установите бесплатное приложение <strong>Media Station X</strong>.<br>
-                2. Запустите Media Station X → откройте <strong>Settings</strong> → <strong>Start Parameter</strong> → <strong>Setup</strong>.<br>
-                3. Укажите следующий адрес плеера:</p>
+                <h3><span>🚀</span> Запуск через Media Station X (Альтернативный способ)</h3>
+                <p>Откройте встроенное приложение <strong>Media Station X</strong> на ТВ → <strong>Settings</strong> → <strong>Start Parameter</strong> → <strong>Setup</strong> и укажите адрес:</p>
                 <div class="code-box" id="msx-url-box">viddaplayer.vercel.app</div>
-                <p style="margin-top: 6px; font-size: 0.85rem; color: #94a3b8;">Иконка плеера появится прямо на главном экране MSX!</p>
-            </div>
-
-            <div class="method-card">
-                <h3><span>⭐</span> Способ 2: Закладки в браузере ТВ</h3>
-                <p>1. Нажмите на пульте ТВ или в браузере иконку <strong>«Меню» (≡)</strong> или <strong>«Закладки» (⭐)</strong>.<br>
-                2. Выберите пункт <strong>«Добавить в закладки»</strong> или <strong>«Закрепить на стартовой странице»</strong>.<br>
-                3. Плеер будет всегда доступен на стартовом экране браузера ТВ.</p>
             </div>
         </div>
 
@@ -147,9 +181,74 @@
     </div>
 
     <script>
+        const btnInstall = document.getElementById('btn-install-pwa');
+        const statusEl = document.getElementById('status');
         const msxUrlBox = document.getElementById('msx-url-box');
         const host = window.location.host;
         msxUrlBox.textContent = host ? host : 'viddaplayer.vercel.app';
+
+        let deferredPrompt = null;
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            statusEl.textContent = '🟢 Иконка готова к добавлению! Нажмите кнопку выше.';
+            statusEl.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+            statusEl.style.color = '#4ade80';
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            const title = "VIDAA TV Player";
+            const appUrl = window.location.origin + "/index.html";
+            const iconUrl = window.location.origin + "/favicon.svg";
+
+            statusEl.textContent = '⏳ Попытка установки ярлыка на ТВ...';
+
+            let installed = false;
+
+            // 1. Try VIDAA / Hisense Native APIs
+            if (typeof window.Hisense_InstallApp === 'function') {
+                try { window.Hisense_InstallApp(appUrl, title, iconUrl); installed = true; } catch(e){}
+            }
+            if (!installed && typeof window.Hisense_AddShortcut === 'function') {
+                try { window.Hisense_AddShortcut(title, appUrl, iconUrl); installed = true; } catch(e){}
+            }
+            if (!installed && window.hisense && typeof window.hisense.installApp === 'function') {
+                try { window.hisense.installApp(appUrl, title, iconUrl); installed = true; } catch(e){}
+            }
+            if (!installed && window.Hisense_AppManager && typeof window.Hisense_AppManager.installApp === 'function') {
+                try { window.Hisense_AppManager.installApp({ url: appUrl, name: title, icon: iconUrl }); installed = true; } catch(e){}
+            }
+            if (!installed && window.oipfApplicationManager) {
+                try {
+                    const app = window.oipfApplicationManager.createApplication(appUrl, false);
+                    if (app) app.show();
+                    installed = true;
+                } catch(e){}
+            }
+
+            // 2. Try PWA deferredPrompt
+            if (!installed && deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installed = true;
+                    deferredPrompt = null;
+                }
+            }
+
+            if (installed) {
+                statusEl.textContent = '🎉 Иконка плеера успешно добавлена на главный экран ТВ!';
+                statusEl.style.color = '#4ade80';
+            } else {
+                statusEl.textContent = 'ℹ️ Нажмите кнопку «Меню» или «Закладки» на пульте ТВ и выберите «Добавить на главный экран» или «В закладки».';
+                statusEl.style.color = '#fbbf24';
+            }
+        });
     </script>
 </body>
 </html>
