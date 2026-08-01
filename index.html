@@ -231,6 +231,16 @@
                                     <span id="speed-label">1.0x</span>
                                 </button>
 
+                                <!-- Quality selector -->
+                                <button id="btn-quality" class="btn btn-control focusable hidden" title="Качество видео">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+                                        <line x1="12" y1="18" x2="12" y2="22"/>
+                                        <path d="M7 8h10v6H7z"/>
+                                    </svg>
+                                    <span id="quality-label">Авто</span>
+                                </button>
+
                                 <!-- Audio tracks selector -->
                                 <button id="btn-audio" class="btn btn-control focusable" title="Аудиодорожки">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -267,6 +277,14 @@
                         <button class="menu-item focusable" data-speed="1.75">1.75x</button>
                         <button class="menu-item focusable" data-speed="2.0">2.0x</button>
                         <button class="menu-item focusable" data-speed="2.5">2.5x</button>
+                    </div>
+                </div>
+
+                <!-- Quality Menu -->
+                <div id="quality-menu" class="popup-menu hidden glass-panel">
+                    <h4>Качество видео</h4>
+                    <div class="menu-options" id="quality-options">
+                        <div class="menu-item">Загрузка...</div>
                     </div>
                 </div>
 

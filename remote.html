@@ -223,6 +223,11 @@
             <span id="btn-text">Отправить на ТВ</span>
         </button>
 
+        <div class="remote-controls" style="display: flex; gap: 10px; margin-top: 15px;">
+            <button id="btn-remote-pause" class="btn-send" style="background: #475569; flex: 1; padding: 10px; font-size: 0.95rem;">⏯ Пауза/Плей</button>
+            <button id="btn-remote-stop" class="btn-send" style="background: #ef4444; flex: 1; padding: 10px; font-size: 0.95rem;">⏹ Стоп</button>
+        </div>
+
         <div id="history-section" class="history-section" style="display: none;">
             <h3>История отправленных ссылок:</h3>
             <div id="history-list"></div>
@@ -245,6 +250,8 @@
         const historySection = document.getElementById('history-section');
         const historyList = document.getElementById('history-list');
         const tvCodeInput = document.getElementById('tv-code');
+        const btnPause = document.getElementById('btn-remote-pause');
+        const btnStop = document.getElementById('btn-remote-stop');
 
         let sentHistory = JSON.parse(localStorage.getItem('remote_history') || '[]');
         renderHistory();
@@ -342,6 +349,24 @@
             }
         }
         
+        btnPause.addEventListener('click', () => {
+            if (tvConnection && tvConnection.open) {
+                tvConnection.send({ command: 'play_pause' });
+                setStatus('ready', '⏯ Команда паузы отправлена');
+            } else {
+                setStatus('error', '❌ Нет подключения к ТВ');
+            }
+        });
+
+        btnStop.addEventListener('click', () => {
+            if (tvConnection && tvConnection.open) {
+                tvConnection.send({ command: 'stop' });
+                setStatus('ready', '⏹ Команда остановки отправлена');
+            } else {
+                setStatus('error', '❌ Нет подключения к ТВ');
+            }
+        });
+
         function saveToHistory(url) {
             sentHistory = sentHistory.filter(h => h !== url);
             sentHistory.unshift(url);

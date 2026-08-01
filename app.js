@@ -87,6 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
         speedLabel: document.getElementById('speed-label'),
         speedMenu: document.getElementById('speed-menu'),
         speedOptions: document.getElementById('speed-options'),
+        
+        btnQuality: document.getElementById('btn-quality'),
+        qualityLabel: document.getElementById('quality-label'),
+        qualityMenu: document.getElementById('quality-menu'),
+        qualityOptions: document.getElementById('quality-options'),
 
         btnAudio: document.getElementById('btn-audio'),
         audioLabel: document.getElementById('audio-label'),
@@ -169,6 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('📡 Ссылка получена с телефона!');
                     elements.urlInput.value = data.url;
                     loadVideo(data.url);
+                } else if (data && data.command === 'play_pause') {
+                    togglePlayPause();
+                } else if (data && data.command === 'stop') {
+                    if (state.currentScreen === 'player-screen') {
+                        exitPlayer();
+                    }
                 }
             });
         });
@@ -516,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Popup Menus Toggles
         elements.btnSpeed.addEventListener('click', () => toggleMenu('speed-menu'));
+        elements.btnQuality.addEventListener('click', () => toggleMenu('quality-menu'));
         elements.btnAudio.addEventListener('click', () => toggleMenu('audio-menu'));
         elements.btnSubtitles.addEventListener('click', () => toggleMenu('subtitle-menu'));
 
@@ -642,6 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 setupHlsAudioTracks(hls);
                 setupSubtitles(hls);
+                setupHlsQuality(hls);
                 applySavedPosition(url);
                 playVideo();
             });
@@ -894,6 +907,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function setupHlsQuality(hls) {
+        if (!hls || !hls.levels || hls.levels.length <= 1) {
+            elements.btnQuality.classList.add('hidden');
+            return;
+        }
+        elements.btnQuality.classList.remove('hidden');
+        elements.qualityOptions.innerHTML = '';
+
+        const autoBtn = document.createElement('button');
+        autoBtn.className = `menu-item focusable ${hls.currentLevel === -1 ? 'active' : ''}`;
+        autoBtn.textContent = 'Автоматически';
+        autoBtn.addEventListener('click', () => {
+            hls.currentLevel = -1;
+            elements.qualityLabel.textContent = 'Авто';
+            showToast('Качество: Авто');
+            setupHlsQuality(hls);
+            closeMenus();
+        });
+        elements.qualityOptions.appendChild(autoBtn);
+
+        hls.levels.forEach((level, index) => {
+            const btn = document.createElement('button');
+            btn.className = `menu-item focusable ${hls.currentLevel === index ? 'active' : ''}`;
+            const name = level.height ? `${level.height}p` : `Качество ${index + 1}`;
+            btn.textContent = name;
+            btn.addEventListener('click', () => {
+                hls.currentLevel = index;
+                elements.qualityLabel.textContent = name;
+                showToast(`Качество: ${name}`);
+                setupHlsQuality(hls);
+                closeMenus();
+            });
+            elements.qualityOptions.appendChild(btn);
+        });
+        
+        // Update label initially
+        if (hls.currentLevel === -1) {
+            elements.qualityLabel.textContent = 'Авто';
+        } else if (hls.levels[hls.currentLevel]) {
+            elements.qualityLabel.textContent = hls.levels[hls.currentLevel].height ? `${hls.levels[hls.currentLevel].height}p` : `Качество ${hls.currentLevel + 1}`;
+        }
+    }
+
     // =========================================================================
     // PROGRESS BAR & OSD MANAGEMENT
     // =========================================================================
@@ -947,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeMenus() {
-        ['speed-menu', 'audio-menu', 'subtitle-menu'].forEach(id => {
+        ['speed-menu', 'quality-menu', 'audio-menu', 'subtitle-menu'].forEach(id => {
             document.getElementById(id).classList.add('hidden');
         });
         state.activeMenu = null;
