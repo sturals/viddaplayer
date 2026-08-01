@@ -600,8 +600,10 @@ video {
     bottom: 140px;
     right: 60px;
     padding: 20px;
-    width: 320px;
-    max-height: 520px;
+    width: auto;
+    min-width: 320px;
+    max-width: 700px;
+    max-height: 70vh;
     overflow-y: auto;
     z-index: 40;
     display: flex;
@@ -621,19 +623,19 @@ video {
 }
 
 .menu-options {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px;
 }
 
 .menu-item {
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-radius: var(--radius-sm);
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid transparent;
     color: #fff;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.95rem;
     text-align: left;
     display: flex;
     align-items: center;

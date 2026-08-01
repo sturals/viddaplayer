@@ -497,6 +497,17 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.btnClearHistory.addEventListener('click', clearHistory);
 
         // Player Controls
+        function handleSeekClick(e) {
+            if (!elements.video.duration) return;
+            const rect = elements.progressWrapper.getBoundingClientRect();
+            let pos = (e.clientX - rect.left) / rect.width;
+            pos = Math.max(0, Math.min(pos, 1));
+            elements.video.currentTime = pos * elements.video.duration;
+            showOSD();
+        }
+        elements.progressWrapper.addEventListener('click', handleSeekClick);
+        elements.progressWrapper.addEventListener('dblclick', handleSeekClick);
+        
         elements.btnPlayPause.addEventListener('click', togglePlayPause);
         elements.btnRewind.addEventListener('click', () => seekRelative(-10));
         elements.btnForward.addEventListener('click', () => seekRelative(10));
