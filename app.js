@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHistory();
         setupEventListeners();
         setupKeyboardInput();
-        startApiPolling();
+        startPeerJs();
         checkUrlParam();
         
         if ('serviceWorker' in navigator) {
@@ -151,22 +151,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // HTTP API POLLING FOR PHONE REMOTE (Per TV ID)
+    // PEER.JS SERVERLESS PHONE REMOTE
     // =========================================================================
-    function startApiPolling() {
-        if (!state.tvId) return;
-        setInterval(() => {
-            fetch('/api/poll?tv=' + encodeURIComponent(state.tvId))
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.url) {
-                        showToast('📡 Ссылка получена с телефона!');
-                        elements.urlInput.value = data.url;
-                        loadVideo(data.url);
-                    }
-                })
-                .catch(() => {});
-        }, 1500);
+    function startPeerJs() {
+        if (!state.tvId || typeof Peer === 'undefined') return;
+        
+        const peerId = 'vidaatv-' + state.tvId;
+        const peer = new Peer(peerId);
+        
+        peer.on('open', (id) => {
+            console.log('TV Remote Peer ID:', id);
+        });
+        
+        peer.on('connection', (conn) => {
+            conn.on('data', (data) => {
+                if (data && data.url) {
+                    showToast('📡 Ссылка получена с телефона!');
+                    elements.urlInput.value = data.url;
+                    loadVideo(data.url);
+                }
+            });
+        });
+        
+        peer.on('error', (err) => {
+            console.error('PeerJS error:', err);
+        });
     }
 
     // Live Clock Updater

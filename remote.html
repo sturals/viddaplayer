@@ -193,6 +193,8 @@
             margin-top: 4px;
         }
     </style>
+    <!-- PeerJS for Vercel Serverless Remote -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -206,11 +208,9 @@
             <span id="status-text">🟢 Готов к отправке на ТВ</span>
         </div>
 
-        <div class="input-group" id="tv-select-group">
-            <label for="tv-select">Целевой телевизор:</label>
-            <select id="tv-select" class="select-input">
-                <option value="default">Загрузка списка ТВ...</option>
-            </select>
+        <div class="input-group" id="tv-code-group">
+            <label for="tv-code">Код телевизора (из QR-ссылки):</label>
+            <input type="text" id="tv-code" class="url-input" placeholder="Например: tv_1234" autocomplete="off" />
         </div>
 
         <div class="input-group">
@@ -229,7 +229,7 @@
         </div>
 
         <div class="footer">
-            Ссылка передаётся моментально через локальный сервер
+            Ссылка передаётся моментально напрямую через WebRTC (PeerJS)
         </div>
     </div>
 
@@ -244,96 +244,110 @@
         const btnTextEl = document.getElementById('btn-text');
         const historySection = document.getElementById('history-section');
         const historyList = document.getElementById('history-list');
-        const tvSelectGroup = document.getElementById('tv-select-group');
-        const tvSelect = document.getElementById('tv-select');
+        const tvCodeInput = document.getElementById('tv-code');
 
         let sentHistory = JSON.parse(localStorage.getItem('remote_history') || '[]');
         renderHistory();
 
-        // Load active TVs list
-        loadActiveTvs();
+        let peer = null;
+        let tvConnection = null;
 
-        btnSend.addEventListener('click', sendUrlToTV);
-
-        async function loadActiveTvs() {
-            try {
-                const res = await fetch('/api/tvs');
-                const data = await res.json();
-
-                tvSelect.innerHTML = '';
-
-                if (urlTvParam) {
-                    const option = document.createElement('option');
-                    option.value = urlTvParam;
-                    option.textContent = `📺 Выбранный ТВ (${urlTvParam.replace('tv_', '')})`;
-                    option.selected = true;
-                    tvSelect.appendChild(option);
-                }
-
-                if (data.tvs && data.tvs.length > 0) {
-                    data.tvs.forEach(tv => {
-                        if (tv.id !== urlTvParam) {
-                            const opt = document.createElement('option');
-                            opt.value = tv.id;
-                            opt.textContent = `📺 ${tv.name}`;
-                            tvSelect.appendChild(opt);
-                        }
-                    });
-                } else if (!urlTvParam) {
-                    const opt = document.createElement('option');
-                    opt.value = 'default';
-                    opt.textContent = '📺 Все подключенные ТВ (по умолчанию)';
-                    tvSelect.appendChild(opt);
-                }
-            } catch (e) {
-                console.warn('Could not load TVs list', e);
-            }
+        if (urlTvParam) {
+            tvCodeInput.value = urlTvParam;
+            tvCodeInput.disabled = true;
+            initPeer();
+        } else {
+            setStatus('error', '⚠️ Введите код ТВ (например: tv_1234) и нажмите отправить.');
         }
 
-        async function sendUrlToTV() {
-            const url = urlInput.value.trim();
-            if (!url) {
-                setStatus('error', '⚠️ Введите или вставьте ссылку на видео!');
+        btnSend.addEventListener('click', () => {
+            if (!peer && tvCodeInput.value.trim()) {
+                initPeer();
+            } else if (tvConnection && tvConnection.open) {
+                sendUrlToTV();
+            } else {
+                initPeer();
+            }
+        });
+
+        function initPeer() {
+            const tvCode = tvCodeInput.value.trim();
+            if (!tvCode) {
+                setStatus('error', '⚠️ Введите код телевизора!');
                 return;
             }
 
-            const targetTv = tvSelect.value || urlTvParam || 'default';
+            setStatus('ready', '🔄 Подключение к ТВ...');
+            btnSend.disabled = true;
 
-            setStatus('sending', '⏳ Отправка на ТВ...');
+            if (peer) peer.destroy();
+            
+            peer = new Peer(); // Create phone peer
 
-            try {
-                const response = await fetch('/api/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url, tv: targetTv })
+            peer.on('open', (id) => {
+                const targetPeerId = 'vidaatv-' + tvCode;
+                console.log('Connecting to TV:', targetPeerId);
+                tvConnection = peer.connect(targetPeerId, { reliable: true });
+
+                tvConnection.on('open', () => {
+                    setStatus('ready', '🟢 Успешно подключено к ТВ!');
+                    btnSend.disabled = false;
+                    sendUrlToTV(); // auto-send if url is ready
                 });
 
-                const data = await response.json();
+                tvConnection.on('close', () => {
+                    setStatus('error', '❌ Связь с ТВ потеряна.');
+                    btnSend.disabled = false;
+                    peer.destroy();
+                    peer = null;
+                });
+                
+                tvConnection.on('error', (err) => {
+                    setStatus('error', '❌ Ошибка соединения: ' + err);
+                    btnSend.disabled = false;
+                });
+            });
 
-                if (data.ok) {
-                    setStatus('sent', '🚀 Видео запущено на ТВ!');
-                    btnTextEl.textContent = '✅ Отправлено!';
-                    btnSend.classList.add('success');
+            peer.on('error', (err) => {
+                setStatus('error', '❌ Ошибка сети: ' + err.type);
+                btnSend.disabled = false;
+            });
+        }
 
-                    // Save history
-                    sentHistory = sentHistory.filter(h => h !== url);
-                    sentHistory.unshift(url);
-                    if (sentHistory.length > 5) sentHistory.pop();
-                    localStorage.setItem('remote_history', JSON.stringify(sentHistory));
-                    renderHistory();
+        function sendUrlToTV() {
+            const url = urlInput.value.trim();
+            if (!url) return;
 
-                    setTimeout(() => {
-                        btnTextEl.textContent = 'Отправить на ТВ';
-                        btnSend.classList.remove('success');
-                        setStatus('ready', '🟢 Готов к отправке на ТВ');
-                    }, 3000);
-                } else {
-                    setStatus('error', '❌ Ошибка сервера: ' + (data.error || 'Неизвестная ошибка'));
-                }
-            } catch (err) {
-                console.error('Send error:', err);
-                setStatus('error', '❌ Ошибка сети. Убедитесь, что ТВ включён и сервер запущен.');
+            if (!tvConnection || !tvConnection.open) {
+                initPeer();
+                return;
             }
+
+            try {
+                tvConnection.send({ url: url });
+                
+                setStatus('ready', '✅ Ссылка успешно отправлена!');
+                btnSend.classList.add('success');
+                btnTextEl.textContent = 'Отправлено!';
+
+                saveToHistory(url);
+
+                setTimeout(() => {
+                    btnSend.classList.remove('success');
+                    btnTextEl.textContent = 'Отправить на ТВ';
+                    setStatus('ready', '🟢 Готов к отправке на ТВ');
+                }, 2000);
+            } catch (e) {
+                setStatus('error', '❌ Ошибка отправки: ' + e.message);
+            }
+        }
+        
+        function saveToHistory(url) {
+            sentHistory = sentHistory.filter(h => h !== url);
+            sentHistory.unshift(url);
+            if (sentHistory.length > 5) sentHistory.pop();
+            localStorage.setItem('remote_history', JSON.stringify(sentHistory));
+            renderHistory();
         }
 
         function setStatus(type, text) {
