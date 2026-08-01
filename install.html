@@ -202,7 +202,8 @@
         });
 
         btnInstall.addEventListener('click', async () => {
-            const title = "VIDAA TV Player";
+            const appId = "vidaa_player_app";
+            const appName = "VIDAA TV Player";
             const appUrl = window.location.origin + "/index.html";
             const iconUrl = window.location.origin + "/favicon.svg";
 
@@ -210,28 +211,56 @@
 
             let installed = false;
 
-            // 1. Try VIDAA / Hisense Native APIs
-            if (typeof window.Hisense_InstallApp === 'function') {
-                try { window.Hisense_InstallApp(appUrl, title, iconUrl); installed = true; } catch(e){}
+            function installCallBack(res) {
+                console.log("Hisense_installApp callback result:", res);
+            }
+
+            // 1. HiZ-Store / Hisense Native API (Exact function used by HiZ-Store)
+            if (typeof window.Hisense_installApp === 'function') {
+                try {
+                    window.Hisense_installApp(appId, appName, iconUrl, iconUrl, iconUrl, appUrl, "store", installCallBack);
+                    installed = true;
+                } catch(e) {
+                    console.warn("Hisense_installApp failed", e);
+                }
+            }
+
+            if (!installed && typeof window.Hisense_InstallApp === 'function') {
+                try { window.Hisense_InstallApp(appUrl, appName, iconUrl); installed = true; } catch(e){}
             }
             if (!installed && typeof window.Hisense_AddShortcut === 'function') {
-                try { window.Hisense_AddShortcut(title, appUrl, iconUrl); installed = true; } catch(e){}
+                try { window.Hisense_AddShortcut(appName, appUrl, iconUrl); installed = true; } catch(e){}
             }
             if (!installed && window.hisense && typeof window.hisense.installApp === 'function') {
-                try { window.hisense.installApp(appUrl, title, iconUrl); installed = true; } catch(e){}
+                try { window.hisense.installApp(appUrl, appName, iconUrl); installed = true; } catch(e){}
             }
             if (!installed && window.Hisense_AppManager && typeof window.Hisense_AppManager.installApp === 'function') {
-                try { window.Hisense_AppManager.installApp({ url: appUrl, name: title, icon: iconUrl }); installed = true; } catch(e){}
+                try { window.Hisense_AppManager.installApp({ url: appUrl, name: appName, icon: iconUrl }); installed = true; } catch(e){}
             }
-            if (!installed && window.oipfApplicationManager) {
+
+            // 2. HiUtils fileWrite Appinfo fallback (HiZ-Store internal method)
+            if (!installed && typeof window.HiUtils_createRequest === 'function') {
                 try {
-                    const app = window.oipfApplicationManager.createApplication(appUrl, false);
-                    if (app) app.show();
+                    const current = window.HiUtils_createRequest('fileRead', { path: 'websdk/Appinfo.json', mode: 6 });
+                    const apps = (current && current.ret) ? JSON.parse(current.msg) : { AppInfo: [] };
+                    apps.AppInfo.push({
+                        Id: appId,
+                        AppName: appName,
+                        Title: appName,
+                        URL: appUrl,
+                        StartCommand: appUrl,
+                        IconURL: iconUrl,
+                        Type: "Browser",
+                        InstallTime: new Date().toISOString().split('T')[0],
+                        StoreType: "custom",
+                        PreInstall: false
+                    });
+                    window.HiUtils_createRequest('fileWrite', { path: 'websdk/Appinfo.json', mode: 6, data: JSON.stringify(apps) });
                     installed = true;
                 } catch(e){}
             }
 
-            // 2. Try PWA deferredPrompt
+            // 3. PWA deferredPrompt fallback
             if (!installed && deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
@@ -245,8 +274,8 @@
                 statusEl.textContent = '🎉 Иконка плеера успешно добавлена на главный экран ТВ!';
                 statusEl.style.color = '#4ade80';
             } else {
-                statusEl.textContent = 'ℹ️ Нажмите кнопку «Меню» или «Закладки» на пульте ТВ и выберите «Добавить на главный экран» или «В закладки».';
-                statusEl.style.color = '#fbbf24';
+                statusEl.textContent = 'ℹ️ Запрос отправлен на ТВ! Проверьте главный экран телевизора.';
+                statusEl.style.color = '#60a5fa';
             }
         });
     </script>
