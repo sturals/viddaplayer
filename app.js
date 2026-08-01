@@ -113,7 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         let savedId = localStorage.getItem('vidaa_tv_id');
         if (!savedId) {
-            savedId = 'tv_' + Math.floor(1000 + Math.random() * 9000);
+            // Generate a secure 6-character alphanumeric ID to prevent guessing
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let randomStr = '';
+            for (let i = 0; i < 6; i++) {
+                randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            savedId = 'tv_' + randomStr;
             localStorage.setItem('vidaa_tv_id', savedId);
         }
         state.tvId = savedId;
