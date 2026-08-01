@@ -1,0 +1,9 @@
+{
+  "name": "vidaa-tv-player",
+  "version": "1.0.0",
+  "description": "VIDAA TV Player for Smart TV",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
