@@ -56,30 +56,6 @@
             line-height: 1.5;
         }
 
-        .btn-install {
-            width: 100%;
-            padding: 20px;
-            border: none;
-            border-radius: 16px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: #fff;
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45);
-        }
-
-        .btn-install:hover, .btn-install:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
-            outline: 3px solid #60a5fa;
-        }
-
         .methods-grid {
             display: flex;
             flex-direction: column;
@@ -93,7 +69,7 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .method-card h3 {
@@ -112,38 +88,32 @@
 
         .code-box {
             background: #000;
-            padding: 10px 14px;
+            padding: 12px 16px;
             border-radius: 10px;
             font-family: monospace;
             color: #4ade80;
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             word-break: break-all;
             margin-top: 4px;
-        }
-
-        .status-box {
-            padding: 14px 18px;
-            border-radius: 14px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            text-align: center;
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(74, 222, 128, 0.2);
         }
 
         .btn-open-app {
             display: inline-block;
             text-align: center;
             text-decoration: none;
-            color: #94a3b8;
-            font-size: 0.95rem;
-            margin-top: 6px;
-            transition: color 0.2s;
+            padding: 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
 
-        .btn-open-app:hover {
-            color: #fff;
+        .btn-open-app:hover, .btn-open-app:focus {
+            outline: 3px solid #60a5fa;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -151,32 +121,25 @@
 
     <div class="card">
         <div class="header">
-            <h1>📺 Установка на TV</h1>
-            <p>Добавьте иконку VIDAA TV Player на главный экран телевизора Toshiba / Hisense</p>
-        </div>
-
-        <button id="btn-install-pwa" class="btn-install">
-            <span>📲</span>
-            <span>Добавить иконку на рабочий стол ТВ</span>
-        </button>
-
-        <div id="status" class="status-box">
-            Нажмите кнопку выше для быстрой установки иконки на рабочий стол ТВ
+            <h1>📺 Быстрый запуск на VIDAA TV</h1>
+            <p>На операционной системе VIDAA OS (Hisense / Toshiba) есть 2 удобных способа запуска плеера без постоянного ввода адреса:</p>
         </div>
 
         <div class="methods-grid">
             <div class="method-card">
-                <h3><span>📺</span> Способ 1: Установка через браузер ТВ</h3>
-                <p>1. Откройте эту страницу на телевизоре в браузере.<br>
-                2. Нажмите синюю кнопку <strong>«Добавить иконку»</strong> выше.<br>
-                3. Подтвердите добавление — иконка плеера появится на рабочем столе ТВ.</p>
+                <h3><span>🚀</span> Способ 1: Запуск в 1 клик через Media Station X (Рекомендуется)</h3>
+                <p>1. Откройте встроенный магазин приложений на ТВ и установите бесплатное приложение <strong>Media Station X</strong>.<br>
+                2. Запустите Media Station X → откройте <strong>Settings</strong> → <strong>Start Parameter</strong> → <strong>Setup</strong>.<br>
+                3. Укажите следующий адрес плеера:</p>
+                <div class="code-box" id="msx-url-box">viddaplayer.vercel.app</div>
+                <p style="margin-top: 6px; font-size: 0.85rem; color: #94a3b8;">Иконка плеера появится прямо на главном экране MSX!</p>
             </div>
 
             <div class="method-card">
-                <h3><span>🚀</span> Способ 2: Запуск через Media Station X (MSX)</h3>
-                <p>Если на вашем ТВ установлено приложение Media Station X:<br>
-                Перейдите в Settings → Start Parameter → Setup и укажите адрес:</p>
-                <div class="code-box" id="app-url-box">http://...</div>
+                <h3><span>⭐</span> Способ 2: Закладки в браузере ТВ</h3>
+                <p>1. Нажмите на пульте ТВ или в браузере иконку <strong>«Меню» (≡)</strong> или <strong>«Закладки» (⭐)</strong>.<br>
+                2. Выберите пункт <strong>«Добавить в закладки»</strong> или <strong>«Закрепить на стартовой странице»</strong>.<br>
+                3. Плеер будет всегда доступен на стартовом экране браузера ТВ.</p>
             </div>
         </div>
 
@@ -184,65 +147,9 @@
     </div>
 
     <script>
-        const btnInstall = document.getElementById('btn-install-pwa');
-        const statusEl = document.getElementById('status');
-        const appUrlBox = document.getElementById('app-url-box');
-
-        const currentUrl = window.location.origin + window.location.pathname.replace('install.html', '');
-        appUrlBox.textContent = currentUrl;
-
-        let deferredPrompt = null;
-
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => {
-                console.log('ServiceWorker registered');
-            }).catch(err => {
-                console.warn('SW registration failed:', err);
-            });
-        }
-
-        // PWA Install Prompt Listener
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            statusEl.textContent = '🟢 Приложение готово к установке! Нажмите кнопку выше.';
-            statusEl.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-            statusEl.style.color = '#4ade80';
-        });
-
-        btnInstall.addEventListener('click', async () => {
-            // Check native VIDAA JS APIs
-            if (window.Hisense_AddShortcut || window.Hisense_InstallApp) {
-                try {
-                    if (window.Hisense_AddShortcut) {
-                        window.Hisense_AddShortcut('VIDAA TV Player', currentUrl, currentUrl + 'favicon.svg');
-                    } else if (window.Hisense_InstallApp) {
-                        window.Hisense_InstallApp(currentUrl);
-                    }
-                    statusEl.textContent = '🎉 Иконка успешно добавлена на главный экран ТВ!';
-                    return;
-                } catch(e) {
-                    console.warn('Hisense API error', e);
-                }
-            }
-
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    statusEl.textContent = '🎉 Плеер успешно установлен на рабочий стол ТВ!';
-                    deferredPrompt = null;
-                }
-            } else {
-                // VIDAA / Browser fallback instructions
-                statusEl.textContent = 'ℹ️ Нажмите кнопку «Меню» или «Закладки» на пульте ТВ и выберите «Добавить на главный экран» или «В закладки».';
-            }
-        });
-
-        window.addEventListener('appinstalled', () => {
-            statusEl.textContent = '🎉 Иконка VIDAA TV Player уже добавлена на ваш рабочий стол!';
-        });
+        const msxUrlBox = document.getElementById('msx-url-box');
+        const host = window.location.host;
+        msxUrlBox.textContent = host ? host : 'viddaplayer.vercel.app';
     </script>
 </body>
 </html>

@@ -1,0 +1,13 @@
+{
+  "name": "VIDAA TV Player",
+  "version": "1.0.0",
+  "icon": "https://viddaplayer.vercel.app/favicon.svg",
+  "background": "#0a0c10",
+  "items": [
+    {
+      "title": "VIDAA TV Player",
+      "action": "link:https://viddaplayer.vercel.app/index.html",
+      "icon": "https://viddaplayer.vercel.app/favicon.svg"
+    }
+  ]
+}
