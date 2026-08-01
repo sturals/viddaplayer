@@ -386,8 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.preventDefault();
                     if (state.currentScreen === 'player-screen') {
                         showOSD();
-                        const osdFocusables = Array.from(elements.osdOverlay.querySelectorAll('.focusable'));
-                        if (!state.focusedElement || !osdFocusables.includes(state.focusedElement)) {
+                        if (!state.focusedElement || !elements.playerScreen.contains(state.focusedElement)) {
                             setFocus(elements.btnPlayPause);
                             return;
                         }
@@ -399,8 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.preventDefault();
                     if (state.currentScreen === 'player-screen') {
                         showOSD();
-                        const osdFocusables = Array.from(elements.osdOverlay.querySelectorAll('.focusable'));
-                        if (!state.focusedElement || !osdFocusables.includes(state.focusedElement)) {
+                        if (!state.focusedElement || !elements.playerScreen.contains(state.focusedElement)) {
                             setFocus(elements.btnPlayPause);
                             return;
                         }
