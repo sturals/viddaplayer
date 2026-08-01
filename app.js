@@ -846,7 +846,10 @@ document.addEventListener('DOMContentLoaded', () => {
         offBtn.className = `menu-item focusable ${isOff ? 'active' : ''}`;
         offBtn.textContent = 'Выключить';
         offBtn.addEventListener('click', () => {
-            if (hls) hls.subtitleTrack = -1;
+            if (hls) {
+                hls.subtitleTrack = -1;
+                hls.subtitleDisplay = false;
+            }
             if (elements.video.textTracks) {
                 Array.from(elements.video.textTracks).forEach(t => t.mode = 'disabled');
             }
@@ -868,9 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.textContent = label;
                 btn.addEventListener('click', () => {
                     hls.subtitleTrack = index;
-                    if (elements.video.textTracks) {
-                        Array.from(elements.video.textTracks).forEach(t => t.mode = 'disabled');
-                    }
+                    hls.subtitleDisplay = true;
                     showToast(`Субтитры: ${label}`);
                     setupSubtitles(hls);
                     closeMenus();
@@ -891,7 +892,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const label = track.label || track.language || `Субтитры ${track.kind || ''} ${index + 1}`;
                 btn.textContent = label;
                 btn.addEventListener('click', () => {
-                    if (hls) hls.subtitleTrack = -1;
+                    if (hls) {
+                        hls.subtitleTrack = -1;
+                        hls.subtitleDisplay = false;
+                    }
                     Array.from(elements.video.textTracks).forEach((t, i) => {
                         t.mode = (i === index) ? 'showing' : 'disabled';
                     });
